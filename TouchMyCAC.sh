@@ -45,6 +45,7 @@ if [ ! -d "~/.ssh" ]; then
 fi
 cp CACid_rs* ~/.ssh/
 
+echo ""
 expect -c "  
 	set timeout 1
 	spawn ssh root@${CACIP} \'mkdir .ssh\'
@@ -53,9 +54,9 @@ expect -c "
 	sleep 1
 	exit
 "
-
 sleep 2
 
+echo ""
 expect -c "  
 	set timeout 1
 	spawn scp CACid_rsa.pub root@${CACIP}:.ssh/authorized_keys
@@ -64,8 +65,10 @@ expect -c "
 	sleep 1
 	exit
 "
+echo ""
 
 ssh-add CACid_rsa
+chmod 600 CACid_rsa*
 ssh -i CACid_rsa root@${CACIP} useradd -m ${NewUserName}
 ssh -i CACid_rsa root@${CACIP} "echo ${NewUserName}:${NewUserPassword} | chpasswd"
 ssh -i CACid_rsa root@${CACIP} usermod -a -G sudo ${NewUserName}
@@ -76,7 +79,7 @@ ssh -i CACid_rsa root@${CACIP} apt update
 ssh -i CACid_rsa root@${CACIP} apt-get -y -o Dpkg::Options::="--force-confnew" dist-upgrade
 ssh -i CACid_rsa root@${CACIP} apt -y install bro fail2ban firefox iptables-persistent synaptic tcpdump vim wireshark xfce4 xfce4-dict xfce4-goodies xfce4-terminal xubuntu-icon-theme
 ssh -i CACid_rsa root@${CACIP} service fail2ban stop
-ssh -i CACid_rsa root@${CACIP} awk '{ printf "# "; print; }' /etc/fail2ban/jail.conf | sudo tee /etc/fail2ban/jail.local
+ssh -i CACid_rsa root@${CACIP} awk '{ printf "# "; print; }' /etc/fail2ban/jail.conf | tee /etc/fail2ban/jail.local
 ssh -i CACid_rsa root@${CACIP} iptables -F
 ssh -i CACid_rsa root@${CACIP} iptables -A INPUT -i lo -j ACCEPT
 ssh -i CACid_rsa root@${CACIP} iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
