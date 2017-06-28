@@ -67,7 +67,6 @@ expect -c "
 	sleep 3
 	exit
 "
-
 echo ""
 expect -c "  
 	set timeout 6
@@ -82,28 +81,45 @@ expect -c "
 #######################################################################################################
 # Install new SSH key pair on local box
 ssh-add ~/.ssh/CACid_rsa
+sleep 3;
 
 #######################################################################################################
 # Create new users on CAC and add them to sudo, also change root password
+echo -e "\n\n01\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} useradd -m ${NewUserName}
+echo -e "\n\n02\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} chsh -s /bin/bash ${NewUserName}
+echo -e "\n\n03\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} "echo ${NewUserName}:${NewUserPassword} | chpasswd"
+echo -e "\n\n04\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} usermod -a -G sudo ${NewUserName}
-ssh -i ~/.ssh/CACid_rsa root@${CACIP} "echo root:${NewRootPassword} | chpasswd"
+#echo -e "\n\n06\n\n"
+#ssh -i ~/.ssh/CACid_rsa root@${CACIP} "echo root:${NewRootPassword} | chpasswd"
 
 #######################################################################################################
 # Add repositories, run updates, and install junk
+echo -e "\n\n05\n\n"
+ssh -i ~/.ssh/CACid_rsa root@${CACIP} sh -c "echo 'deb http://download.opensuse.org/repositories/network:/bro/xUbuntu_14.04/ /' >> /etc/apt/sources.list.d/bro.list"
+echo -e "\n\n06\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} wget http://download.opensuse.org/repositories/network:bro/xUbuntu_14.04/Release.key
+echo -e "\n\n07\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} apt-key add Release.key
+echo -e "\n\n08\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} rm Release.key
+echo -e "\n\n09\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} apt update
+echo -e "\n\n10\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} apt-get -y -o Dpkg::Options::="--force-confnew" dist-upgrade
-ssh -i ~/.ssh/CACid_rsa root@${CACIP} apt -y install bro fail2ban firefox iptables-persistent synaptic tcpdump vim wireshark xfce4 xfce4-dict xfce4-goodies xfce4-terminal xubuntu-icon-theme
-ssh -i ~/.ssh/CACid_rsa root@${CACIP} "awk \'{ printf \"# \"; print; }\' /etc/fail2ban/jail.conf | tee /etc/fail2ban/jail.local"
+echo -e "\n\n11\n\n"
+ssh -i ~/.ssh/CACid_rsa root@${CACIP} apt -y install fail2ban firefox fontconfig iptables-persistent openbox obconf synaptic tcpdump vim wireshark 
+echo -e "\n\n12\n\n"
+ssh -i ~/.ssh/CACid_rsa root@${CACIP} cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+echo -e "\n\n13\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} service fail2ban stop
 
 #######################################################################################################
 # Firewall all the things
+echo -e "\n\n14\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} iptables -F
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} iptables -A INPUT -i lo -j ACCEPT
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
@@ -122,27 +138,36 @@ ssh -i ~/.ssh/CACid_rsa root@${CACIP} service fail2ban restart
 
 #######################################################################################################
 # Get NoMachine installed for easy peasy remote desktop
+echo -e "\n\n15\n\n"
 scp -i ~/.ssh/CACid_rsa NoMachine.deb root@${CACIP}:
+echo -e "\n\n16\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} dpkg -i NoMachine.deb
+echo -e "\n\n17\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} rm NoMachine.deb
+echo -e "\n\n18\n\n"
 
 #######################################################################################################
 # Get Bro IDS installed because I'm a bro bro and bro is the way to be cool
+echo -e "\n\n19\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} /opt/bro/bin/broctl install
+echo -e "\n\n20\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} /opt/bro/bin/broctl start
-ssh -i ~/.ssh/CACid_rsa root@${CACIP} echo "#!/usr/bin/env sh" >> /etc/init.d/S97-setup.sh
-ssh -i ~/.ssh/CACid_rsa root@${CACIP} echo "/opt/bro/bin/broctl start" >> /etc/init.d/S97-setup.sh
+echo -e "\n\n21\n\n"
+ssh -i ~/.ssh/CACid_rsa root@${CACIP} echo #!/usr/bin/env sh >> /etc/init.d/S97-setup.sh
+echo -e "\n\n22\n\n"
+ssh -i ~/.ssh/CACid_rsa root@${CACIP} echo /opt/bro/bin/broctl start >> /etc/init.d/S97-setup.sh
+echo -e "\n\n23\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} reboot
 
 #######################################################################################################
-# rm SSH keypair from pwd, and install an alias for easy sshing
+# rm SSH keypair from pwd
 rm CACid_rsa*
-touch ~/.bash_aliases
-echo -e "alias ssh-cac=\'ssh -i ~/.ssh/CACid_rsa root@${CACIP}\'" >> ~/.bash_aliases
 
 #######################################################################################################
 # Tell user that they need to use the passwords we generated up top
-echo -e "\nMake sure you record these new passwords somewhere or you will be sad."
-echo -e "\n${CACIP}"
-echo -e "\nroot password: ${NewRootPassword}"
-echo -e "\n${NewUserName} password: ${NewUserPassword}"
+echo -e "\n\nMake sure you record the new passwords somewhere or you will be sad.\nYou can find them in CAC_${CACIP}.txt\n\n"
+touch CAC_${CACIP}.txt
+echo -e "CAC IP : ${CACIP}" >> CAC_${CACIP}.txt
+echo -e "\nroot : ${NewRootPassword}" >> CAC_${CACIP}.txt
+echo -e "\n${NewUserName} : ${NewUserPassword}" >> CAC_${CACIP}.txt
+cat CAC_${CACIP}.txt
