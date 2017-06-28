@@ -90,6 +90,8 @@ ssh -i ~/.ssh/CACid_rsa root@${CACIP} useradd -m ${NewUserName}
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} chsh -s /bin/bash ${NewUserName}
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} "echo ${NewUserName}:${NewUserPassword} | chpasswd"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} usermod -a -G sudo ${NewUserName}
+#######################################################################################################
+# This is working kinda weird so we're commenting it out for now
 #echo -e "\n\n01\n\n"
 #ssh -i ~/.ssh/CACid_rsa root@${CACIP} "echo root:${NewRootPassword} | chpasswd"
 
