@@ -2,6 +2,7 @@
 
 #######################################################################################################
 # Thank the flying toasters for the Digital Ocean wiki and stack exchange
+# This version isn't a total pile of hott garbage, but we're still doing echo debugging
 
 #######################################################################################################
 # Generate new random 16 char passwords
@@ -85,41 +86,37 @@ sleep 3;
 
 #######################################################################################################
 # Create new users on CAC and add them to sudo, also change root password
-echo -e "\n\n01\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} useradd -m ${NewUserName}
-echo -e "\n\n02\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} chsh -s /bin/bash ${NewUserName}
-echo -e "\n\n03\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} "echo ${NewUserName}:${NewUserPassword} | chpasswd"
-echo -e "\n\n04\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} usermod -a -G sudo ${NewUserName}
-#echo -e "\n\n06\n\n"
+#echo -e "\n\n01\n\n"
 #ssh -i ~/.ssh/CACid_rsa root@${CACIP} "echo root:${NewRootPassword} | chpasswd"
 
 #######################################################################################################
 # Add repositories, run updates, and install junk
-echo -e "\n\n05\n\n"
+echo -e "\n\n02\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} sh -c "echo 'deb http://download.opensuse.org/repositories/network:/bro/xUbuntu_14.04/ /' >> /etc/apt/sources.list.d/bro.list"
-echo -e "\n\n06\n\n"
+echo -e "\n\n03\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} wget http://download.opensuse.org/repositories/network:bro/xUbuntu_14.04/Release.key
-echo -e "\n\n07\n\n"
+echo -e "\n\n04\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} apt-key add Release.key
-echo -e "\n\n08\n\n"
+echo -e "\n\n05\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} rm Release.key
-echo -e "\n\n09\n\n"
+echo -e "\n\n06\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} apt update
-echo -e "\n\n10\n\n"
+echo -e "\n\n07\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} apt-get -y -o Dpkg::Options::="--force-confnew" dist-upgrade
-echo -e "\n\n11\n\n"
+echo -e "\n\n08\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} apt -y install fail2ban firefox fontconfig iptables-persistent openbox obconf synaptic tcpdump vim wireshark 
-echo -e "\n\n12\n\n"
+echo -e "\n\n09\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
-echo -e "\n\n13\n\n"
+echo -e "\n\n10\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} service fail2ban stop
 
 #######################################################################################################
 # Firewall all the things
-echo -e "\n\n14\n\n"
+echo -e "\n\n11\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} iptables -F
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} iptables -A INPUT -i lo -j ACCEPT
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
@@ -138,25 +135,24 @@ ssh -i ~/.ssh/CACid_rsa root@${CACIP} service fail2ban restart
 
 #######################################################################################################
 # Get NoMachine installed for easy peasy remote desktop
-echo -e "\n\n15\n\n"
+echo -e "\n\n12\n\n"
 scp -i ~/.ssh/CACid_rsa NoMachine.deb root@${CACIP}:
-echo -e "\n\n16\n\n"
+echo -e "\n\n13\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} dpkg -i NoMachine.deb
-echo -e "\n\n17\n\n"
+echo -e "\n\n14\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} rm NoMachine.deb
-echo -e "\n\n18\n\n"
 
 #######################################################################################################
 # Get Bro IDS installed because I'm a bro bro and bro is the way to be cool
-echo -e "\n\n19\n\n"
+echo -e "\n\n15\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} /opt/bro/bin/broctl install
-echo -e "\n\n20\n\n"
+echo -e "\n\n16\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} /opt/bro/bin/broctl start
-echo -e "\n\n21\n\n"
+echo -e "\n\n17\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} echo #!/usr/bin/env sh >> /etc/init.d/S97-setup.sh
-echo -e "\n\n22\n\n"
+echo -e "\n\n18\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} echo /opt/bro/bin/broctl start >> /etc/init.d/S97-setup.sh
-echo -e "\n\n23\n\n"
+echo -e "\n\n19\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} reboot
 
 #######################################################################################################
