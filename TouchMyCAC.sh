@@ -98,7 +98,7 @@ ssh -i ~/.ssh/CACid_rsa root@${CACIP} usermod -a -G sudo ${NewUserName}
 #######################################################################################################
 # Add repositories, run updates, and install junk
 echo -e "\n\n02\n\n"
-ssh -i ~/.ssh/CACid_rsa root@${CACIP} sh -c "echo 'deb http://download.opensuse.org/repositories/network:/bro/xUbuntu_14.04/ /' >> /etc/apt/sources.list.d/bro.list"
+scp -i ~/.ssh/CACid_rsa bro.list root@${CACIP}:/etc/apt/sources.list.d/bro.list
 echo -e "\n\n03\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} wget http://download.opensuse.org/repositories/network:bro/xUbuntu_14.04/Release.key
 echo -e "\n\n04\n\n"
@@ -110,7 +110,7 @@ ssh -i ~/.ssh/CACid_rsa root@${CACIP} apt update
 echo -e "\n\n07\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} apt-get -y -o Dpkg::Options::="--force-confnew" dist-upgrade
 echo -e "\n\n08\n\n"
-ssh -i ~/.ssh/CACid_rsa root@${CACIP} apt -y install fail2ban firefox fontconfig iptables-persistent openbox obconf synaptic tcpdump vim wireshark 
+ssh -i ~/.ssh/CACid_rsa root@${CACIP} apt -y install fail2ban firefox fontconfig iptables-persistent synaptic tcpdump vim wireshark xfce4 xfce4-terminal xfce4-dict xfce4-goodies xfce4-netload-plugin xubuntu-icon-theme
 echo -e "\n\n09\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
 echo -e "\n\n10\n\n"
@@ -126,7 +126,7 @@ ssh -i ~/.ssh/CACid_rsa root@${CACIP} iptables -A INPUT -p tcp --dport 22 -j ACC
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} iptables -A INPUT -p tcp --dport 80 -j ACCEPT
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} iptables -A INPUT -p tcp --dport 443 -j ACCEPT
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} iptables -A INPUT -p tcp --dport 4000 -j ACCEPT
-ssh -i ~/.ssh/CACid_rsa root@${CACIP} iptables -A INPUT -p upd --dport 22 -j ACCEPT
+ssh -i ~/.ssh/CACid_rsa root@${CACIP} iptables -A INPUT -p udp --dport 22 -j ACCEPT
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} iptables -A INPUT -p udp --dport 80 -j ACCEPT
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} iptables -A INPUT -p udp --dport 443 -j ACCEPT
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} iptables -A INPUT -p udp --dport 4000 -j ACCEPT
@@ -145,16 +145,14 @@ echo -e "\n\n14\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} rm NoMachine.deb
 
 #######################################################################################################
-# Get Bro IDS installed because I'm a bro bro and bro is the way to be cool
+# Get Bro IDS installed because I'm a bro bro and bro is the way to be a bro bro bro.
 echo -e "\n\n15\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} /opt/bro/bin/broctl install
 echo -e "\n\n16\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} /opt/bro/bin/broctl start
 echo -e "\n\n17\n\n"
-ssh -i ~/.ssh/CACid_rsa root@${CACIP} echo #!/usr/bin/env sh >> /etc/init.d/S97-setup.sh
+scp -i ~/.ssh/CACid_rsa S97-setup.sh root@${CACIP}:/etc/init.d/S97-setup.sh
 echo -e "\n\n18\n\n"
-ssh -i ~/.ssh/CACid_rsa root@${CACIP} echo /opt/bro/bin/broctl start >> /etc/init.d/S97-setup.sh
-echo -e "\n\n19\n\n"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} reboot
 
 #######################################################################################################
