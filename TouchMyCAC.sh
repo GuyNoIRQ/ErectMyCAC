@@ -2,6 +2,7 @@
 
 #######################################################################################################
 # Thank the flying toasters for the Digital Ocean wiki and stack exchange
+# This version isn't a total pile of hott garbage, but we're still doing echo debugging
 
 #######################################################################################################
 # Generate new random 16 char passwords
@@ -59,15 +60,14 @@ cp CACid_rsa* ~/.ssh/
 echo ""
 expect -c "  
 	set timeout 9
-	spawn ssh root@${CACIP} mkdir /root/.ssh/
-	sleep 3
+	spawn ssh root@${CACIP} mkdir /root/.ssh
+	sleep 5
 	expect \(yes\/no\)\? { send yes\r }
-	sleep 3
+	sleep 5
 	expect password: { send ${DefaultRootPassword}\r }
 	sleep 3
 	exit
 "
-
 echo ""
 expect -c "  
 	set timeout 6
@@ -75,13 +75,14 @@ expect -c "
 	sleep 3
 	expect password: { send ${DefaultRootPassword}\r }
 	expect 100%
-	sleep 3
+	sleep 5
 	exit
 "
 
 #######################################################################################################
 # Install new SSH key pair on local box
 ssh-add ~/.ssh/CACid_rsa
+sleep 3;
 
 #######################################################################################################
 # Create new users on CAC and add them to sudo, also change root password
@@ -89,17 +90,22 @@ ssh -i ~/.ssh/CACid_rsa root@${CACIP} useradd -m ${NewUserName}
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} chsh -s /bin/bash ${NewUserName}
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} "echo ${NewUserName}:${NewUserPassword} | chpasswd"
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} usermod -a -G sudo ${NewUserName}
-ssh -i ~/.ssh/CACid_rsa root@${CACIP} "echo root:${NewRootPassword} | chpasswd"
+#######################################################################################################
+# This is working kinda weird so we're commenting it out for now
+#echo -e "\n\n01\n\n"
+#ssh -i ~/.ssh/CACid_rsa root@${CACIP} "echo root:${NewRootPassword} | chpasswd"
 
 #######################################################################################################
 # Add repositories, run updates, and install junk
+scp -i ~/.ssh/CACid_rsa bro.list root@${CACIP}:/etc/apt/sources.list.d/bro.list
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} wget http://download.opensuse.org/repositories/network:bro/xUbuntu_14.04/Release.key
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} apt-key add Release.key
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} rm Release.key
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} apt update
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} apt-get -y -o Dpkg::Options::="--force-confnew" dist-upgrade
-ssh -i ~/.ssh/CACid_rsa root@${CACIP} apt -y install bro fail2ban firefox iptables-persistent synaptic tcpdump vim wireshark xfce4 xfce4-dict xfce4-goodies xfce4-terminal xubuntu-icon-theme
-ssh -i ~/.ssh/CACid_rsa root@${CACIP} "awk \'{ printf \"# \"; print; }\' /etc/fail2ban/jail.conf | tee /etc/fail2ban/jail.local"
+echo -e "\n\nNeed to expect this junk so it does things fire and forget\n\n"
+ssh -i ~/.ssh/CACid_rsa root@${CACIP} apt -y install bro chromium-browser fail2ban firefox fontconfig iptables-persistent synaptic tcpdump vim wireshark xfce4 xfce4-terminal xfce4-goodies xfce4-netload-plugin xscreensaver-data xubuntu-icon-theme
+ssh -i ~/.ssh/CACid_rsa root@${CACIP} cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} service fail2ban stop
 
 #######################################################################################################
@@ -111,7 +117,7 @@ ssh -i ~/.ssh/CACid_rsa root@${CACIP} iptables -A INPUT -p tcp --dport 22 -j ACC
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} iptables -A INPUT -p tcp --dport 80 -j ACCEPT
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} iptables -A INPUT -p tcp --dport 443 -j ACCEPT
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} iptables -A INPUT -p tcp --dport 4000 -j ACCEPT
-ssh -i ~/.ssh/CACid_rsa root@${CACIP} iptables -A INPUT -p upd --dport 22 -j ACCEPT
+ssh -i ~/.ssh/CACid_rsa root@${CACIP} iptables -A INPUT -p udp --dport 22 -j ACCEPT
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} iptables -A INPUT -p udp --dport 80 -j ACCEPT
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} iptables -A INPUT -p udp --dport 443 -j ACCEPT
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} iptables -A INPUT -p udp --dport 4000 -j ACCEPT
@@ -127,22 +133,21 @@ ssh -i ~/.ssh/CACid_rsa root@${CACIP} dpkg -i NoMachine.deb
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} rm NoMachine.deb
 
 #######################################################################################################
-# Get Bro IDS installed because I'm a bro bro and bro is the way to be cool
+# Get Bro IDS installed because I'm a bro bro and bro is the way to be a bro bro bro.
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} /opt/bro/bin/broctl install
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} /opt/bro/bin/broctl start
-ssh -i ~/.ssh/CACid_rsa root@${CACIP} echo "#!/usr/bin/env sh" >> /etc/init.d/S97-setup.sh
-ssh -i ~/.ssh/CACid_rsa root@${CACIP} echo "/opt/bro/bin/broctl start" >> /etc/init.d/S97-setup.sh
+scp -i ~/.ssh/CACid_rsa S97-setup.sh root@${CACIP}:/etc/init.d/S97-setup.sh
 ssh -i ~/.ssh/CACid_rsa root@${CACIP} reboot
 
 #######################################################################################################
-# rm SSH keypair from pwd, and install an alias for easy sshing
+# rm SSH keypair from pwd
 rm CACid_rsa*
-touch ~/.bash_aliases
-echo -e "alias ssh-cac=\'ssh -i ~/.ssh/CACid_rsa root@${CACIP}\'" >> ~/.bash_aliases
 
 #######################################################################################################
 # Tell user that they need to use the passwords we generated up top
-echo -e "\nMake sure you record these new passwords somewhere or you will be sad."
-echo -e "\n${CACIP}"
-echo -e "\nroot password: ${NewRootPassword}"
-echo -e "\n${NewUserName} password: ${NewUserPassword}"
+echo -e "\n\nMake sure you record the new passwords somewhere or you will be sad.\nYou can find them in CAC_${CACIP}.txt\n\n"
+touch CAC_${CACIP}.txt
+echo -e "CAC IP : ${CACIP}" >> CAC_${CACIP}.txt
+echo -e "\nroot : ${NewRootPassword}" >> CAC_${CACIP}.txt
+echo -e "\n${NewUserName} : ${NewUserPassword}" >> CAC_${CACIP}.txt
+cat CAC_${CACIP}.txt
